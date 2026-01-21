@@ -12,7 +12,7 @@ from telegram.ext import (
 OWNER_ID = 7834574830
 BOT_TOKEN = "8536314905:AAFN5mkHLIkJBgfxtFwwp7-nsxFmDHzehB4"
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = ""
 OWNER = "SamiALqutami"
 REPO = "Tmooil"
 WORKFLOW_FILE = "main.yml"
