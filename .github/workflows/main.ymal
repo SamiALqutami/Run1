@@ -27,5 +27,9 @@ jobs:
           pip install python-telegram-bot==20.7 requests
 
       - name: Run Telegram Bot
+        env:
+          # هنا نقوم بربط الأسرار بمتغيرات النظام
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
           python bot.py
