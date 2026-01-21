@@ -1,0 +1,31 @@
+name: Telegram Bot Runner
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: telegram-bot
+  cancel-in-progress: true
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # أقل من 6 ساعات
+
+    steps:
+      - name: 📥 جلب الملفات
+        uses: actions/checkout@v4
+
+      - name: 🐍 إعداد بايثون
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 تثبيت المكتبات
+        run: |
+          pip install --upgrade pip
+          pip install python-telegram-bot==20.7 requests
+
+      - name: 🤖 تشغيل البوت
+        run: |
+          python bot.py
