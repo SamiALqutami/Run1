@@ -1,3 +1,4 @@
+import os
 import asyncio
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -8,14 +9,15 @@ from telegram.ext import (
     ContextTypes
 )
 
-# ========= الإعدادات =========
-OWNER_ID = 7834574830
-BOT_TOKEN = "8536314905:AAFN5mkHLIkJBgfxtFwwp7-nsxFmDHzehB4"
+# ========= الإعدادات (جلب التوكنات من النظام) =========
+OWNER_ID = 7834574830 
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+GITHUB_TOKEN = os.getenv("MY_GITHUB_TOKEN")
 
-GITHUB_TOKEN = ""
+# معلومات المستودع
 OWNER = "SamiALqutami"
 REPO = "Tmooil"
-WORKFLOW_FILE = "main.yml"
+WORKFLOW_FILE = "main.yml"  # تأكد أن هذا هو اسم ملف الـ workflow الذي تريد التحكم به
 BRANCH = "main"
 
 HEADERS = {
@@ -67,7 +69,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             {"ref": BRANCH}
         )
         if r.status_code == 204:
-            await query.edit_message_text("✅ تم التشغيل بنجاح", reply_markup=control_keyboard())
+            await query.edit_message_text("✅ تم إرسال أمر التشغيل بنجاح", reply_markup=control_keyboard())
         else:
             await query.edit_message_text(f"❌ فشل التشغيل\n{r.text}", reply_markup=control_keyboard())
 
@@ -84,13 +86,13 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         run = runs[0]
         msg = (
-            f"📊 الحالة الحالية\n\n"
+            f"📊 الحالة الحالية لآخر عملية:\n\n"
             f"🔹 الحالة: `{run['status']}`\n"
-            f"🔹 النتيجة: `{run['conclusion']}`\n"
-            f"⏰ بدأ: `{run['run_started_at']}`\n"
-            f"🔗 {run['html_url']}"
+            f"🔹 النتيجة: `{run.get('conclusion', 'قيد التنفيذ')}`\n"
+            f"⏰ بدأ في: `{run['run_started_at']}`\n"
+            f"🔗 [رابط العملية]({run['html_url']})"
         )
-        await query.edit_message_text(msg, reply_markup=control_keyboard())
+        await query.edit_message_text(msg, reply_markup=control_keyboard(), parse_mode="Markdown")
 
     elif query.data == "stop":
         r = await asyncio.to_thread(
@@ -111,14 +113,18 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         if stop.status_code == 202:
-            await query.edit_message_text("⛔ تم إيقاف العملية", reply_markup=control_keyboard())
+            await query.edit_message_text("⛔ تم إرسال طلب إيقاف العملية", reply_markup=control_keyboard())
         else:
-            await query.edit_message_text("❌ فشل الإيقاف", reply_markup=control_keyboard())
+            await query.edit_message_text("❌ فشل الإيقاف (ربما العملية منتهية بالفعل)", reply_markup=control_keyboard())
 
 # ========= تشغيل =========
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(buttons))
-    print("🤖 البوت يعمل...")
-    app.run_polling()
+    if not BOT_TOKEN or not GITHUB_TOKEN:
+        print("❌ خطأ: لم يتم العثور على التوكنات في الأسرار (Secrets)!")
+    else:
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CallbackQueryHandler(buttons))
+        print("🤖 البوت يعمل الآن على GitHub Actions...")
+        app.run_polling()
+ 
